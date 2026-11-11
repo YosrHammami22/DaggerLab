@@ -23,12 +23,24 @@ fun MainScreen(
 
 ) {
     val last by viewModel.lastDuration.collectAsStateWithLifecycle()
+    MainContent(
+        lastDuration = last,
+        onDurationSelected = viewModel::onDurationSelected,
+        modifier = modifier
+    )
+}
 
-    Column(modifier= Modifier.padding(24.dp)) {
-        Text("Last: ${last ?: "none"} min",modifier= Modifier.padding(16.dp))
+@Composable
+fun MainContent(
+    lastDuration: Int?,
+    onDurationSelected: (Int) -> Unit,
+    modifier: Modifier = Modifier
+) {
+    Column(modifier = modifier.padding(24.dp)) {
+        Text("Last: ${lastDuration ?: "none"} min",modifier= Modifier.padding(16.dp))
         Row(modifier= Modifier.padding(16.dp)) {
             listOf(15, 30, 60).forEach { minutes ->
-                Button(onClick = { viewModel.onDurationSelected(minutes) }) {
+                Button(onClick = { onDurationSelected(minutes) }) {
                     Text("$minutes")
                 }
             }
@@ -38,11 +50,6 @@ fun MainScreen(
 
 @Preview(showBackground = true)
 @Composable
-fun MainScreenPreview() {
-    DaggerLabTheme {
-        MainScreen(
-            modifier = TODO(),
-            viewModel = TODO()
-        )
-    }
+private fun MainContentPreview() {
+    DaggerLabTheme { MainContent(lastDuration = 30, onDurationSelected = {}) }
 }
