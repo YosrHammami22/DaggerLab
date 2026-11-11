@@ -23,12 +23,13 @@ class MainActivity: ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         (application as DaggerLabApplication).appComponent.inject(this)
         super.onCreate(savedInstanceState)
+        val formatter = (application as DaggerLabApplication).appComponent.timeFormatter()
         enableEdgeToEdge()
         setContent {
             DaggerLabTheme {
                 Scaffold(modifier = Modifier.fillMaxSize()) {innerPadding ->
                     Greeting(
-                        name = greetingRepository.getName(),
+                        name = formatter.format(90_000) ,
                         modifier = Modifier.padding(innerPadding)
                     )
                 }
