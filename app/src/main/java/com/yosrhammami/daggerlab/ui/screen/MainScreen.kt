@@ -1,0 +1,48 @@
+package com.yosrhammami.daggerlab.ui.screen
+
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.Button
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.dp
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.yosrhammami.daggerlab.ui.player.PlayerViewModel
+import com.yosrhammami.daggerlab.ui.theme.DaggerLabTheme
+
+@Composable
+fun MainScreen(
+    modifier: Modifier = Modifier,
+    viewModel: PlayerViewModel,
+
+) {
+    val last by viewModel.lastDuration.collectAsStateWithLifecycle()
+
+    Column(modifier= Modifier.padding(24.dp)) {
+        Text("Last: ${last ?: "none"} min",modifier= Modifier.padding(16.dp))
+        Row(modifier= Modifier.padding(16.dp)) {
+            listOf(15, 30, 60).forEach { minutes ->
+                Button(onClick = { viewModel.onDurationSelected(minutes) }) {
+                    Text("$minutes")
+                }
+            }
+        }
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+fun MainScreenPreview() {
+    DaggerLabTheme {
+        MainScreen(
+            modifier = TODO(),
+            viewModel = TODO()
+        )
+    }
+}
