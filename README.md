@@ -1,6 +1,8 @@
 # DaggerLab
 
-A small Android playground for learning dependency injection with **Dagger 2**, using **KSP** for annotation processing and **Jetpack Compose** for the UI.
+A small Android playground for learning dependency injection with **Dagger 2 (without Hilt)**, using **KSP**, **Room** and **Jetpack Compose**.
+
+The app remembers the last sleep-timer duration the user picked (15, 30 or 60 minutes) and shows it on screen. It is small on purpose: every Dagger concept used in a large production codebase appears once.
 
 ## Tech stack
 
@@ -10,51 +12,112 @@ A small Android playground for learning dependency injection with **Dagger 2**, 
 | Kotlin | 2.2.10 |
 | Dagger | 2.60.1 |
 | KSP | 2.3.13 |
+| Room | 2.8.5 |
 | Compose BOM | 2026.02.01 |
 | compileSdk / targetSdk | 37 |
 | minSdk | 24 |
+| Tests | JUnit 4, kotlinx-coroutines-test, Turbine |
 
 All versions are managed in the version catalog: [`gradle/libs.versions.toml`](gradle/libs.versions.toml).
+
+## Dagger concepts covered
+
+| Concept | Where |
+|---|---|
+| Root component with `@Component.Factory` and `@BindsInstance` (application `Context`) | `di/AppComponent.kt` |
+| `@Provides` for types I don't construct (Room database, DAO) | `di/DatabaseModule.kt` |
+| `@Binds` from an interface to my implementation | `di/RepositoryModule.kt` |
+| `@Singleton` scope (one database per app process) | `DatabaseModule.provideDatabase` |
+| ViewModel multibinding (`@IntoMap` + `@ViewModelKey`) and a `ViewModelProvider.Factory` | `di/viewmodel/` |
+| `@Subcomponent` with a custom `@ActivityScope` | `di/PlayerSubcomponent.kt`, `di/scope/ActivityScope.kt` |
+| Constructor injection that keeps classes testable without Dagger | `ui/player/PlayerViewModel.kt` + its test |
 
 ## Project structure
 
 ```
 app/src/main/java/com/yosrhammami/daggerlab/
-├── DaggerLabApplication.kt   # Builds the AppComponent at startup
-├── MainActivity.kt           # Injects GreetingRepository, shows it in Compose
+├── DaggerLabApplication.kt          # Builds the AppComponent at startup
+├── MainActivity.kt                  # Creates the PlayerSubcomponent and injects itself
 ├── data/
-│   └── GreetingRepository.kt # Interface + @Singleton implementation
+│   ├── local/                       # Room: entity, DAO, AppDatabase
+│   └── repository/
+│       └── RoomSleepTimerSettingsRepository.kt
+├── domain/
+│   └── repository/
+│       └── SleepTimerSettingsRepository.kt   # Interface the rest of the app depends on
 ├── di/
-│   ├── AppComponent.kt       # @Singleton @Component with a Factory
-│   └── AppModule.kt          # @Binds GreetingRepository -> GreetingRepositoryImpl
-└── ui/theme/                 # Compose theme
+│   ├── AppComponent.kt              # @Singleton root component
+│   ├── DatabaseModule.kt            # @Provides AppDatabase (@Singleton) and its DAO
+│   ├── RepositoryModule.kt          # @Binds repository interface -> Room implementation
+│   ├── PlayerSubcomponent.kt        # @ActivityScope child component
+│   ├── scope/ActivityScope.kt
+│   └── viewmodel/                   # ViewModelKey, ViewModelModule, ViewModelFactory
+├── ui/
+│   ├── player/                      # PlayerViewModel, PlaybackTracker
+│   ├── screen/MainScreen.kt         # Compose screen
+│   └── theme/                       # Compose theme
+└── util/                            # TimeFormatter, AppInfoProvider
 ```
 
 ## How the dependency graph works
 
-1. **`DaggerLabApplication`** creates the graph once in `onCreate()`:
+```
+AppComponent (@Singleton)                 lives as long as the Application
+ ├── Context              <- @BindsInstance
+ ├── AppDatabase          <- @Provides @Singleton
+ ├── SleepTimerSettingsDao <- @Provides
+ ├── SleepTimerSettingsRepository <- @Binds RoomSleepTimerSettingsRepository
+ ├── Map<Class<out ViewModel>, Provider<ViewModel>> <- @IntoMap entries
+ └── PlayerSubcomponent (@ActivityScope)  lives as long as MainActivity
+      ├── Activity        <- @BindsInstance
+      └── PlaybackTracker <- @ActivityScope
+```
+
+1. **`DaggerLabApplication`** creates the root graph once:
    ```kotlin
    appComponent = DaggerAppComponent.factory().create(this)
    ```
-   The application `Context` is passed in with `@BindsInstance`, so anything in the graph can inject it.
-
-2. **`AppComponent`** is the root `@Singleton` component. It includes `AppModule` and exposes `inject(MainActivity)`.
-
-3. **`AppModule`** binds the `GreetingRepository` interface to `GreetingRepositoryImpl`, which Dagger builds through its `@Inject constructor()`.
-
-4. **`MainActivity`** asks for its dependencies before `super.onCreate()`:
+2. **`MainActivity`** creates its child component and injects itself **before** `super.onCreate()`, so injected fields are ready if the framework restores state:
    ```kotlin
-   @Inject lateinit var greetingRepository: GreetingRepository
-
-   override fun onCreate(savedInstanceState: Bundle?) {
-       (application as DaggerLabApplication).appComponent.inject(this)
-       super.onCreate(savedInstanceState)
-       ...
-   }
+   (application as DaggerLabApplication).appComponent
+       .playerSubcomponentFactory()
+       .create(this)
+       .inject(this)
+   super.onCreate(savedInstanceState)
    ```
-   The screen then shows **"Hello Dagger!"**.
+3. **ViewModels** are obtained through the injected `ViewModelFactory`, which looks them up in the multibound map:
+   ```kotlin
+   val viewModel: PlayerViewModel = viewModel(factory = viewModelFactory)
+   ```
+4. The child component sees everything its parent provides; the parent never sees the child's bindings. Activity-scoped objects are never injected into ViewModels, which outlive the Activity.
 
 `DaggerAppComponent` is generated by KSP at build time, in `app/build/generated/ksp/`.
+
+## Adding a new dependency
+
+1. Create the class with an `@Inject constructor`. Add a scope (`@Singleton`, `@ActivityScope`) only if it must be shared or is expensive to create.
+2. Injected through an interface: add a `@Binds` method to `RepositoryModule`. A third-party type you can't annotate: add a `@Provides` method to a module.
+3. Rebuild: KSP regenerates the components, and a missing binding fails the build.
+
+## Adding a new ViewModel
+
+1. Create it with an `@Inject constructor`.
+2. Register it in `ViewModelModule`:
+   ```kotlin
+   @Binds
+   @IntoMap
+   @ViewModelKey(MyViewModel::class)
+   abstract fun bindMyViewModel(vm: MyViewModel): ViewModel
+   ```
+   Forgetting this step does **not** fail the build: the factory throws at runtime when the screen asks for the ViewModel.
+
+## Tests
+
+`PlayerViewModel` is tested without Dagger: the test calls its constructor with a hand-written fake repository, uses a `MainDispatcherRule` to replace `Dispatchers.Main`, and checks the `StateFlow` with Turbine.
+
+```bash
+./gradlew :app:testDebugUnitTest
+```
 
 ## Getting started
 
@@ -68,10 +131,3 @@ cd DaggerLab
 ```
 
 Or open the project in Android Studio and run the `app` configuration.
-
-## Adding a new dependency
-
-1. Create the class, and annotate its constructor with `@Inject` (add `@Singleton` if there should be only one).
-2. If you inject it through an interface, add a `@Binds` method to `AppModule`. For third-party types you can't annotate, use a `@Provides` method in a module instead.
-3. Inject it with `@Inject lateinit var` in an activity that `AppComponent` knows how to inject, or as a constructor parameter of another injected class.
-4. Rebuild, and KSP regenerates `DaggerAppComponent`.
