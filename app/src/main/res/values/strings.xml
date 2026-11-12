@@ -11,6 +11,7 @@
     <string name="sleep_timer_cancel">Cancel</string>
 
     <!-- Sleep timer: Finished -->
-    <string name="sleep_timer_finished">Sleep timer finished</string>
+    <string name="sleep_timer_finished_title">Finished</string>
+    <string name="sleep_timer_finished_message">Your sleep timer has ended</string>
     <string name="sleep_timer_ok">OK</string>
 </resources>

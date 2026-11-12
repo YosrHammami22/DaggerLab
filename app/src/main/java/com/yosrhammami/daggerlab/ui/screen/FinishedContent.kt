@@ -3,6 +3,7 @@ package com.yosrhammami.daggerlab.ui.screen
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Button
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
@@ -14,12 +15,20 @@ import com.yosrhammami.daggerlab.ui.theme.DaggerLabTheme
 
 @Composable
 fun FinishedContent(
-    onDismiss: () -> Unit,
+    onOkClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     Column(modifier = modifier.padding(24.dp)) {
-        Text(stringResource(R.string.sleep_timer_finished), modifier = Modifier.padding(16.dp))
-        Button(onClick = onDismiss, modifier = Modifier.padding(16.dp)) {
+        Text(
+            text = stringResource(R.string.sleep_timer_finished_title),
+            style = MaterialTheme.typography.headlineMedium,
+            modifier = Modifier.padding(16.dp)
+        )
+        Text(
+            text = stringResource(R.string.sleep_timer_finished_message),
+            modifier = Modifier.padding(16.dp)
+        )
+        Button(onClick = onOkClick, modifier = Modifier.padding(16.dp)) {
             Text(stringResource(R.string.sleep_timer_ok))
         }
     }
@@ -28,5 +37,5 @@ fun FinishedContent(
 @Preview(showBackground = true)
 @Composable
 private fun FinishedContentPreview() {
-    DaggerLabTheme { FinishedContent(onDismiss = {}) }
+    DaggerLabTheme { FinishedContent(onOkClick = {}) }
 }
