@@ -23,12 +23,23 @@ fun MainScreen(
     viewModel: PlayerViewModel,
 
 ) {
-    val last by viewModel.lastDuration.collectAsStateWithLifecycle()
-    IdleContent(
-        lastDuration = last,
-        onDurationSelected = viewModel::onDurationSelected,
-        modifier = modifier
-    )
+    val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+    when (val state = uiState) {
+        is SleepTimerUiState.Idle -> IdleContent(
+            lastDuration = state.lastDurationMinutes,
+            onDurationSelected = viewModel::onDurationSelected,
+            modifier = modifier
+        )
+        is SleepTimerUiState.Running -> RunningContent(
+            remainingSeconds = state.remainingSeconds,
+            onCancelClick = viewModel::onCancelClick,
+            modifier = modifier
+        )
+        SleepTimerUiState.Finished -> FinishedContent(
+            onOkClick = viewModel::onOkClick,
+            modifier = modifier
+        )
+    }
 }
 
 @Composable
