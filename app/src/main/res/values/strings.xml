@@ -7,7 +7,7 @@
     <string name="sleep_timer_duration_option">%1$d</string>
 
     <!-- Sleep timer: Running -->
-    <string name="sleep_timer_title">Sleep timer</string>
+    <string name="sleep_timer_in_progress">In progress</string>
     <string name="sleep_timer_cancel">Cancel</string>
 
     <!-- Sleep timer: Finished -->
