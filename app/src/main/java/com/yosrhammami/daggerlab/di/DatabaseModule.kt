@@ -17,5 +17,5 @@ object DatabaseModule {
         Room.databaseBuilder(context, AppDatabase::class.java, AppDatabase.NAME).build()
 
     @Provides
-    fun provideNoteDao(database: AppDatabase): SleepTimerSettingsDao = database.sleepTimerSettingsDao()
+    fun provideSleepTimerSettingsDao(database: AppDatabase): SleepTimerSettingsDao = database.sleepTimerSettingsDao()
 }

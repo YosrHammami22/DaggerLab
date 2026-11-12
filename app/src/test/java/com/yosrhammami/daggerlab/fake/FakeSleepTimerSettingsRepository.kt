@@ -1,4 +1,4 @@
-package com.yosrhammami.daggerlab.fakeRepository
+package com.yosrhammami.daggerlab.fake
 
 import com.yosrhammami.daggerlab.domain.repository.SleepTimerSettingsRepository
 import kotlinx.coroutines.flow.Flow

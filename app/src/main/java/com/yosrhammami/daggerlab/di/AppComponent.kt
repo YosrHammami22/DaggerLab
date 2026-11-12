@@ -1,7 +1,6 @@
 package com.yosrhammami.daggerlab.di
 
 import android.content.Context
-import com.yosrhammami.daggerlab.MainActivity
 import com.yosrhammami.daggerlab.di.viewmodel.ViewModelModule
 import dagger.BindsInstance
 import dagger.Component

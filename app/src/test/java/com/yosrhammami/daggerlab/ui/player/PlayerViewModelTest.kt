@@ -1,10 +1,9 @@
-package com.yosrhammami.daggerlab.ui.viewModel
+package com.yosrhammami.daggerlab.ui.player
 
 import app.cash.turbine.test
 import com.yosrhammami.daggerlab.MainDispatcherRule
-import com.yosrhammami.daggerlab.fakeRepository.FakeSleepTimerSettingsRepository
-import com.yosrhammami.daggerlab.ui.player.PlayerViewModel
-import junit.framework.Assert.assertEquals
+import com.yosrhammami.daggerlab.fake.FakeSleepTimerSettingsRepository
+import org.junit.Assert.assertEquals
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertNull
 import org.junit.Rule
