@@ -2,13 +2,11 @@ package com.yosrhammami.daggerlab.ui.screen
 
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Button
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
@@ -26,7 +24,7 @@ fun MainScreen(
 
 ) {
     val last by viewModel.lastDuration.collectAsStateWithLifecycle()
-    MainContent(
+    IdleContent(
         lastDuration = last,
         onDurationSelected = viewModel::onDurationSelected,
         modifier = modifier
@@ -34,7 +32,7 @@ fun MainScreen(
 }
 
 @Composable
-fun MainContent(
+fun IdleContent(
     lastDuration: Int?,
     onDurationSelected: (Int) -> Unit,
     modifier: Modifier = Modifier
@@ -65,6 +63,6 @@ fun MainContent(
 
 @Preview(showBackground = true)
 @Composable
-private fun MainContentPreview() {
-    DaggerLabTheme { MainContent(lastDuration = 30, onDurationSelected = {}) }
+private fun IdleContentPreview() {
+    DaggerLabTheme { IdleContent(lastDuration = 30, onDurationSelected = {}) }
 }
