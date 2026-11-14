@@ -14,8 +14,9 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
-class PlayerViewModel @Inject constructor(private val settingsRepository: SleepTimerSettingsRepository):
-    ViewModel() {
+class PlayerViewModel @Inject constructor(
+    private val settingsRepository: SleepTimerSettingsRepository
+) : ViewModel() {
 
     val lastDuration: StateFlow<Int?> = settingsRepository.observeLastDuration()
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), null)
