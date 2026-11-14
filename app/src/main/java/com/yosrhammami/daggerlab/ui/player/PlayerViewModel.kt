@@ -31,19 +31,21 @@ class PlayerViewModel @Inject constructor(private val settingsRepository: SleepT
         }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), SleepTimerUiState.Idle(null))
 
     fun onDurationSelected(minutes: Int) {
+        // A countdown of 0 or less would never reach Finished, so reject it before saving anything.
+        require(minutes > 0) { "Duration must be positive, was $minutes" }
         viewModelScope.launch { settingsRepository.saveLastDuration(minutes) }
         startCountdown(minutes * 60L)
     }
 
-    fun onCancelClick() {
+    fun onCancelClick() = resetToIdle()
+
+    fun onOkClick() = resetToIdle()
+
+    // Stops any running countdown and goes back to Idle. uiState then shows the last saved
+    // duration, which stays in Room.
+    private fun resetToIdle() {
         countdownJob?.cancel()
         countdownJob = null
-        // Back to Idle: uiState then shows the last saved duration, which stays in Room.
-        timerState.value = null
-    }
-
-    fun onOkClick() {
-        // Back to Idle with the last saved duration. The Job was already cleared when the countdown ended.
         timerState.value = null
     }
 

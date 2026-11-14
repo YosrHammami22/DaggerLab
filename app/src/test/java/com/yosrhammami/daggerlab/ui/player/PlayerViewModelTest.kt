@@ -10,6 +10,7 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.test.advanceTimeBy
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertNull
+import org.junit.Assert.assertThrows
 import org.junit.Rule
 import org.junit.Test
 
@@ -32,8 +33,8 @@ class PlayerViewModelTest {
         val viewModel = PlayerViewModel(FakeSleepTimerSettingsRepository(initial = 30))
 
         viewModel.lastDuration.test {
-            assertNull(awaitItem())          // valeur initiale de stateIn
-            assertEquals(30, awaitItem())    // valeur venue du repository
+            assertNull(awaitItem())          // initial value of stateIn
+            assertEquals(30, awaitItem())    // value from the repository
         }
     }
 
@@ -62,8 +63,8 @@ class PlayerViewModelTest {
         val viewModel = PlayerViewModel(FakeSleepTimerSettingsRepository(initial = 30))
 
         viewModel.uiState.test {
-            assertEquals(SleepTimerUiState.Idle(null), awaitItem())   // valeur initiale de stateIn
-            assertEquals(SleepTimerUiState.Idle(30), awaitItem())     // valeur venue du repository
+            assertEquals(SleepTimerUiState.Idle(null), awaitItem())   // initial value of stateIn
+            assertEquals(SleepTimerUiState.Idle(30), awaitItem())     // value from the repository
         }
     }
 
@@ -158,17 +159,80 @@ class PlayerViewModelTest {
         }
     }
 
+    @OptIn(ExperimentalCoroutinesApi::class)
+    @Test
+    fun `ok while Running goes back to Idle and stops the countdown`() = runTest {
+        val viewModel = PlayerViewModel(FakeSleepTimerSettingsRepository())
+
+        viewModel.uiState.test {
+            assertEquals(SleepTimerUiState.Idle(null), awaitItem())
+            viewModel.onDurationSelected(15)
+            assertEquals(SleepTimerUiState.Running(900), awaitItem())
+            assertEquals(SleepTimerUiState.Running(899), awaitItem())
+
+            viewModel.onOkClick()
+            assertEquals(SleepTimerUiState.Idle(15), awaitItem())
+
+            advanceTimeBy(5_000)
+            expectNoEvents()
+        }
+    }
+
+    @OptIn(ExperimentalCoroutinesApi::class)
+    @Test
+    fun `selecting a duration of zero or less is rejected and changes nothing`() = runTest {
+        val repository = FakeSleepTimerSettingsRepository(initial = 30)
+        val viewModel = PlayerViewModel(repository)
+
+        viewModel.uiState.test {
+            assertEquals(SleepTimerUiState.Idle(null), awaitItem())
+            assertEquals(SleepTimerUiState.Idle(30), awaitItem())
+
+            for (minutes in listOf(0, -5)) {
+                assertThrows(IllegalArgumentException::class.java) {
+                    viewModel.onDurationSelected(minutes)
+                }
+            }
+
+            advanceTimeBy(5_000)
+            expectNoEvents()
+        }
+        assertEquals(30, repository.observeLastDuration().first())
+    }
+
+    @OptIn(ExperimentalCoroutinesApi::class)
+    @Test
+    fun `selecting a new duration while Running restarts from it and stops the old countdown`() = runTest {
+        val viewModel = PlayerViewModel(FakeSleepTimerSettingsRepository())
+
+        viewModel.uiState.test {
+            assertEquals(SleepTimerUiState.Idle(null), awaitItem())
+            viewModel.onDurationSelected(15)
+            assertEquals(SleepTimerUiState.Running(900), awaitItem())
+            assertEquals(SleepTimerUiState.Running(899), awaitItem())
+
+            // Restart between two ticks so a leftover old countdown would emit separately
+            // (on the same tick, StateFlow would merge its value with the new one and hide it).
+            advanceTimeBy(500)
+            viewModel.onDurationSelected(30)
+            assertEquals(SleepTimerUiState.Running(1800), awaitItem())
+            assertEquals(SleepTimerUiState.Running(1799), awaitItem())
+            assertEquals(SleepTimerUiState.Running(1798), awaitItem())
+            cancelAndIgnoreRemainingEvents()
+        }
+    }
+
     @Test
     fun `cancel keeps the saved duration`() = runTest {
         val repository = FakeSleepTimerSettingsRepository()
         val viewModel = PlayerViewModel(repository)
 
         viewModel.uiState.test {
-            awaitItem()
+            assertEquals(SleepTimerUiState.Idle(null), awaitItem())
             viewModel.onDurationSelected(30)
-            awaitItem()
+            assertEquals(SleepTimerUiState.Running(1800), awaitItem())
             viewModel.onCancelClick()
-            awaitItem()
+            assertEquals(SleepTimerUiState.Idle(30), awaitItem())
         }
         assertEquals(30, repository.observeLastDuration().first())
     }
@@ -189,19 +253,5 @@ class PlayerViewModelTest {
             assertEquals(SleepTimerUiState.Running(1800), awaitItem())
             cancelAndIgnoreRemainingEvents()
         }
-    }
-
-    @Test
-    fun `selecting a duration still saves it`() = runTest {
-        val repository = FakeSleepTimerSettingsRepository()
-        val viewModel = PlayerViewModel(repository)
-
-        viewModel.uiState.test {
-            awaitItem()
-            viewModel.onDurationSelected(30)
-            awaitItem()
-            cancelAndIgnoreRemainingEvents()
-        }
-        assertEquals(30, repository.observeLastDuration().first())
     }
 }
