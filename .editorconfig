@@ -1,0 +1,5 @@
+root = true
+
+[*.{kt,kts}]
+# Match Android Studio's "Kotlin official" style instead of ktlint's default ktlint_official.
+ktlint_code_style = intellij_idea
