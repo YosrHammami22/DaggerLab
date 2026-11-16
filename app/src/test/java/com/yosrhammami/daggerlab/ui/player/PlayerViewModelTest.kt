@@ -495,7 +495,7 @@ class PlayerViewModelTest {
     fun `a new ViewModel sees the timer started by a previous one`() = runTest {
         val logger = FakeAppLogger()
         val playback = FakePlaybackController()
-        val sharedTimer = SleepTimer(this, FakeClock { testScheduler./currentTime }, playback, logger)
+        val sharedTimer = SleepTimer(this, FakeClock { testScheduler.currentTime }, playback, logger)
         val first = createViewModel(logger = logger, playback = playback, sleepTimer = sharedTimer)
 
         first.onDurationSelected(15)
