@@ -7,7 +7,7 @@ import dagger.Component
 import javax.inject.Singleton
 
 @Singleton
-@Component(modules = [DatabaseModule::class, RepositoryModule::class, ViewModelModule::class])
+@Component(modules = [DatabaseModule::class, RepositoryModule::class, PlaybackModule::class, ViewModelModule::class])
 interface AppComponent {
     fun playerSubcomponentFactory(): PlayerSubcomponent.Factory
 
