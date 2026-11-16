@@ -65,3 +65,8 @@ Feature: a sleep timer (15/30/60 min) that remembers the last chosen duration in
 - Work step by step: do ONE step, show the changes, then STOP and wait for my approval.
 - NEVER run `git commit` or `git push`. I commit myself.
 - Explain briefly why you made each choice.
+## Scope
+- Implement ONLY what I explicitly ask. Smallest change that satisfies the requirement.
+- Do not add new abstractions, modules, classes or features unless I ask for them.
+- If you think something extra would help, propose it in one line and wait. Do not implement it.
+- Before writing code, list the files you will create or modify, then wait for my approval.
