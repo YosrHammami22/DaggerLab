@@ -7,6 +7,7 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
@@ -14,16 +15,27 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.yosrhammami.daggerlab.R
+import com.yosrhammami.daggerlab.domain.logging.AppLogger
 import com.yosrhammami.daggerlab.ui.player.PlayerViewModel
 import com.yosrhammami.daggerlab.ui.theme.DaggerLabTheme
+
+private const val MAIN_SCREEN_TAG = "MainScreen"
 
 @Composable
 fun MainScreen(
     modifier: Modifier = Modifier,
     viewModel: PlayerViewModel,
-
+    logger: AppLogger,
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+
+    // Keyed on the state type, not the value: logs Idle -> Running -> Finished transitions
+    // without a log line on every countdown tick.
+    val screenName = uiState::class.simpleName
+    LaunchedEffect(screenName) {
+        logger.d(MAIN_SCREEN_TAG, "Showing $screenName")
+    }
+
     when (val state = uiState) {
         is SleepTimerUiState.Idle -> IdleContent(
             lastDuration = state.lastDurationMinutes,

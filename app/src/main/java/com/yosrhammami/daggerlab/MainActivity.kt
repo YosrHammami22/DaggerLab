@@ -11,6 +11,7 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.ui.Modifier
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.yosrhammami.daggerlab.di.viewmodel.ViewModelFactory
+import com.yosrhammami.daggerlab.domain.logging.AppLogger
 import com.yosrhammami.daggerlab.ui.player.PlaybackTracker
 import com.yosrhammami.daggerlab.ui.player.PlayerViewModel
 import com.yosrhammami.daggerlab.ui.screen.MainScreen
@@ -22,6 +23,9 @@ class MainActivity: ComponentActivity() {
 
     @Inject
     lateinit var viewModelFactory: ViewModelFactory
+
+    @Inject
+    lateinit var logger: AppLogger
 
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -40,7 +44,8 @@ class MainActivity: ComponentActivity() {
                 Scaffold(modifier = Modifier.fillMaxSize()) {innerPadding ->
                     MainScreen(
                         modifier = Modifier.padding(innerPadding),
-                        viewModel=playerViewModel
+                        viewModel=playerViewModel,
+                        logger = logger
                     )
                 }
             }
