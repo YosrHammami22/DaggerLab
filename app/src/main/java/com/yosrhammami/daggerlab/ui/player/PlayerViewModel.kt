@@ -2,6 +2,7 @@ package com.yosrhammami.daggerlab.ui.player
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.yosrhammami.daggerlab.domain.playback.PlaybackController
 import com.yosrhammami.daggerlab.domain.repository.SleepTimerSettingsRepository
 import com.yosrhammami.daggerlab.ui.screen.SleepTimerUiState
 import kotlinx.coroutines.Job
@@ -15,7 +16,8 @@ import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 class PlayerViewModel @Inject constructor(
-    private val settingsRepository: SleepTimerSettingsRepository
+    private val settingsRepository: SleepTimerSettingsRepository,
+    private val playbackController: PlaybackController
 ) : ViewModel() {
 
     val lastDuration: StateFlow<Int?> = settingsRepository.observeLastDuration()
@@ -58,8 +60,13 @@ class PlayerViewModel @Inject constructor(
             while (remaining > 0) {
                 delay(1_000)
                 remaining--
-                timerState.value =
-                    if (remaining > 0) SleepTimerUiState.Running(remaining) else SleepTimerUiState.Finished
+                if (remaining > 0) {
+                    timerState.value = SleepTimerUiState.Running(remaining)
+                } else {
+                    // Only reached at zero: cancel/OK cancel the job inside delay(), so they never pause.
+                    playbackController.pause()
+                    timerState.value = SleepTimerUiState.Finished
+                }
             }
             countdownJob = null
         }
