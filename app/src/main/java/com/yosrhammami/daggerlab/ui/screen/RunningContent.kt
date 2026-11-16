@@ -38,5 +38,10 @@ fun RunningContent(
 @Preview(showBackground = true)
 @Composable
 private fun RunningContentPreview() {
-    DaggerLabTheme { RunningContent(remainingSeconds = 899, onCancelClick = {}) }
+    DaggerLabTheme {
+        RunningContent(
+            remainingSeconds = 899,
+            onCancelClick = {}
+        )
+    }
 }

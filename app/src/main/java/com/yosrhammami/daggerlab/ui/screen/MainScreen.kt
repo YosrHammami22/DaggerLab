@@ -39,7 +39,10 @@ fun MainScreen(
     when (val state = uiState) {
         is SleepTimerUiState.Idle -> IdleContent(
             lastDuration = state.lastDurationMinutes,
+            isPlaying = state.isPlaying,
             onDurationSelected = viewModel::onDurationSelected,
+            onPlayClick = viewModel::onPlayClick,
+            onPauseClick = viewModel::onPauseClick,
             modifier = modifier
         )
         is SleepTimerUiState.Running -> RunningContent(
@@ -57,7 +60,10 @@ fun MainScreen(
 @Composable
 fun IdleContent(
     lastDuration: Int?,
+    isPlaying: Boolean,
     onDurationSelected: (Int) -> Unit,
+    onPlayClick: () -> Unit,
+    onPauseClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     Column(modifier = modifier.padding(24.dp)) {
@@ -81,11 +87,25 @@ fun IdleContent(
                 }
             }
         }
+        PlayPauseButton(
+            isPlaying = isPlaying,
+            onPlayClick = onPlayClick,
+            onPauseClick = onPauseClick,
+            modifier = Modifier.padding(16.dp)
+        )
     }
 }
 
 @Preview(showBackground = true)
 @Composable
 private fun IdleContentPreview() {
-    DaggerLabTheme { IdleContent(lastDuration = 30, onDurationSelected = {}) }
+    DaggerLabTheme {
+        IdleContent(
+            lastDuration = 30,
+            isPlaying = false,
+            onDurationSelected = {},
+            onPlayClick = {},
+            onPauseClick = {}
+        )
+    }
 }

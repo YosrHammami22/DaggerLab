@@ -1,15 +1,16 @@
 package com.yosrhammami.daggerlab.ui.player
 
 import android.app.Activity
-import android.util.Log
 import com.yosrhammami.daggerlab.di.scope.ActivityScope
+import com.yosrhammami.daggerlab.domain.logging.AppLogger
 import javax.inject.Inject
 
 @ActivityScope
 class PlaybackTracker @Inject constructor(
-    private val activity: Activity      // fourni par le subcomponent
+    private val activity: Activity,      // fourni par le subcomponent
+    private val logger: AppLogger        // @Singleton, fourni par AppComponent
 ) {
     init {
-        Log.d("DaggerLab", "PlaybackTracker created: ${hashCode()} for ${activity.hashCode()}")
+        logger.d("DaggerLab", "PlaybackTracker created: ${hashCode()} for ${activity.hashCode()}")
     }
 }

@@ -1,6 +1,10 @@
 <resources>
     <string name="app_name">DaggerLab</string>
 
+    <!-- Playback -->
+    <string name="playback_play">Play</string>
+    <string name="playback_pause">Pause</string>
+
     <!-- Sleep timer: Idle -->
     <string name="sleep_timer_last_duration">Last: %1$d min</string>
     <string name="sleep_timer_last_duration_none">Last: none</string>

@@ -25,7 +25,8 @@ Feature: a sleep timer (15/30/60 min) that remembers the last chosen duration in
 
 ### Dagger graph
 - `AppComponent` (`@Singleton`, built in `DaggerLabApplication`, `Context` via `@BindsInstance`)
-  includes `DatabaseModule`, `RepositoryModule`, `ViewModelModule`.
+  includes `DatabaseModule`, `RepositoryModule`, `PlaybackModule`, `LoggingModule`, `CoroutineModule`,
+  `ViewModelModule`.
 - `PlayerSubcomponent` (`@ActivityScope`, `Activity` via `@BindsInstance`) is created in
   `MainActivity.onCreate` **before** `super.onCreate()` and injects `ViewModelFactory`.
 - ViewModels come from `ViewModelFactory` (multibound `Map<Class<out ViewModel>, Provider<ViewModel>>`):
@@ -45,10 +46,16 @@ Feature: a sleep timer (15/30/60 min) that remembers the last chosen duration in
   bumping `AppDatabase.version` and providing a migration.
 
 ## Dagger patterns to reuse
-- Interface → implementation: `@Binds` in `RepositoryModule` (see existing examples).
+- Interface → implementation: `@Binds` in an abstract module named after the domain package.
+  - Repositories (`domain/repository`) go in `RepositoryModule`.
+  - Other concerns get their own module, e.g. `LoggingModule` (`domain/logging`),
+    `PlaybackModule` (`domain/playback`). Add the new module to `AppComponent`.
 - Third-party types (Room): `@Provides` in `DatabaseModule`.
 - New ViewModel: `@Inject constructor` + `@Binds @IntoMap @ViewModelKey` in `ViewModelModule`.
 - Never inject an Activity-scoped object into a ViewModel.
+- Work that must outlive a screen (e.g. `SleepTimer`) runs in the app-wide `CoroutineScope` from
+  `CoroutineModule` (injected, `Main.immediate`), not in `viewModelScope`. In tests, pass the `TestScope`
+  itself, not `backgroundScope` (`advanceUntilIdle()` ignores background work).
 
 ## Testing
 - Unit tests only (`app/src/test`); ViewModels are constructed directly, without Dagger.
